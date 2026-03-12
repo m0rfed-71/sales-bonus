@@ -6,6 +6,9 @@
  */
 function calculateSimpleRevenue(purchase, _product) {
    // @TODO: Расчет выручки от операции
+   const {discount, sale_price, quantity} = purchase;
+   return sale_price * quantity*(1-discount/100);
+   
 }
 
 /**
@@ -26,7 +29,20 @@ function calculateBonusByProfit(index, total, seller) {
  * @returns {{revenue, top_products, bonus, name, sales_count, profit, seller_id}[]}
  */
 function analyzeSalesData(data, options) {
-    // @TODO: Проверка входных данных
+    const receipts = data?.purchase_records;
+    const invalid =
+        !data ||
+        !Array.isArray(data.sellers) ||
+        !Array.isArray(data.products) ||
+        !Array.isArray(receipts) ||
+        data.sellers.length === 0 ||
+        data.products.length === 0 ||
+        receipts.length === 0;
+    if (invalid) {
+        throw new Error(
+            'Данные отсутствуют, либо sellers/products/purchase_records не являются непустыми массивами'
+        );
+    }
 
     // @TODO: Проверка наличия опций
 
