@@ -59,7 +59,6 @@ function analyzeSalesData(data, options) {
     }));
 
     // @TODO: Индексация продавцов и товаров для быстрого доступа
-    const sellerIndex = new Map(data.sellers.map(seller => [seller.id, seller]));
     const productIndex = new Map(data.products.map(product => [product.sku, product]));
 
     // @TODO: Расчет выручки и прибыли для каждого продавца
@@ -77,6 +76,7 @@ function analyzeSalesData(data, options) {
 
             const cost = product.purchase_price * item.quantity;
             const revenue = calculateRevenue(item, product);
+            const lineGross = item.sale_price * item.quantity;
             const profit = revenue - cost;
 
             if (!sellerStat.products_sold[item.sku]) {
@@ -87,7 +87,7 @@ function analyzeSalesData(data, options) {
                 sellerStat.sales_count += 1;
             }
             sellerStat.profit += profit;
-            sellerStat.revenue += revenue;
+            sellerStat.revenue += lineGross;
         });
     });
 
@@ -99,17 +99,19 @@ sellerStats.sort((a, b) => b.profit - a.profit);
         seller.bonus = calculateBonus(index, sellerStats.length, seller);
         seller.top_products = Object.entries(seller.products_sold || {})
             .sort((a, b) => b[1] - a[1])
-            .slice(0, 10);
+            .slice(0, 10)
+            .map(([sku, quantity]) => ({ sku, quantity }));
     }); 
    
     // @TODO: Подготовка итоговой коллекции с нужными полями
+    const round2 = (n) => Math.round(n * 100) / 100;
     return sellerStats.map(seller => ({
         seller_id: seller.seller_id,
         name: seller.name,
-        revenue: seller.revenue.toFixed(2),
-        profit: seller.profit.toFixed(2),
+        revenue: round2(seller.revenue),
+        profit: round2(seller.profit),
         sales_count: seller.sales_count,
         top_products: seller.top_products,
-        bonus: seller.bonus.toFixed(2),
+        bonus: round2(seller.bonus),
     }));
 }
